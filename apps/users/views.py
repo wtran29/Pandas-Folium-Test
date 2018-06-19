@@ -5,16 +5,6 @@ import folium
 import pandas as pd
 # Create your views here.
 
-mapOBJ = folium.Map(location=[38.58, -99.09], zoom_start=6, tiles="Mapbox Bright")
-fgv = folium.FeatureGroup(name="Volcanoes in US")
-
-volcanoList = pd.read_csv("c://users//wtran//desktop//projects//django//test_app//apps//users//Volcanoes_USA.csv")
-lat = list(volcanoList["LAT"])
-lon = list(volcanoList["LON"])
-coord = zip(lat, lon)
-elev = list(volcanoList["ELEV"])
-name = list(volcanoList["NAME"])
-
 
 def color_change(e):
     if e < 1000:
@@ -25,28 +15,42 @@ def color_change(e):
         return "red"
 
 
-for coordinates, elevation, volname in zip(coord, elev, name):
-    content = "<p style='font-family: Arial; font-size: 18px;'>{}</p><p style='font-family: Arial'>Elevation: {} MASL</p>".format(str(volname), str(elevation))
-    iframe = folium.IFrame(content, width=200, height=100)
-    fgv.add_child(folium.CircleMarker(location=coordinates, popup=folium.Popup(iframe), radius=6,
-                                      fill_color=color_change(elevation), fill=True, color='grey', fill_opacity=0.7))
-
-fgp = folium.FeatureGroup(name="Population")
-
-fgp.add_child(folium.GeoJson(data=open('apps/users/world.json', 'r', encoding='utf-8-sig').read(),
-                             style_function=lambda x: {'fillColor': 'green' if x['properties']['POP2005'] < 10000000
-                             else 'orange' if 10000000 <= x['properties']['POP2005'] < 20000000 else 'red'}))
-
-mapOBJ.add_child(fgp)
-mapOBJ.add_child(fgv)
-mapOBJ.add_child(folium.LayerControl())
-
-mapOBJ.save("apps/users/templates/users/Map1.html")
 data = json.load(open("apps/users/data.json"))
 
 
 def index(request):
     return render(request, "users/index.html")
+
+
+def random_map(request):
+    mapOBJ = folium.Map(location=[38.58, -99.09], zoom_start=6, tiles="Mapbox Bright")
+    fgv = folium.FeatureGroup(name="Volcanoes in US")
+
+    volcanoList = pd.read_csv("c://users//wtran//desktop//projects//django//test_app//apps//users//Volcanoes_USA.csv")
+    lat = list(volcanoList["LAT"])
+    lon = list(volcanoList["LON"])
+    coord = zip(lat, lon)
+    elev = list(volcanoList["ELEV"])
+    name = list(volcanoList["NAME"])
+    for coordinates, elevation, volname in zip(coord, elev, name):
+        content = "<p style='font-family: Arial; font-size: 18px;'>{}</p><p style='font-family: Arial'>Elevation: {} MASL</p>".format(
+            str(volname), str(elevation))
+        iframe = folium.IFrame(content, width=200, height=100)
+        fgv.add_child(folium.CircleMarker(location=coordinates, popup=folium.Popup(iframe), radius=6,
+                                          fill_color=color_change(elevation), fill=True, color='grey',
+                                          fill_opacity=0.7))
+
+    fgp = folium.FeatureGroup(name="Population")
+
+    fgp.add_child(folium.GeoJson(data=open('apps/users/world.json', 'r', encoding='utf-8-sig').read(),
+                                 style_function=lambda x: {'fillColor': 'green' if x['properties']['POP2005'] < 10000000
+                                 else 'orange' if 10000000 <= x['properties']['POP2005'] < 20000000 else 'red'}))
+
+    mapOBJ.add_child(fgp)
+    mapOBJ.add_child(fgv)
+    mapOBJ.add_child(folium.LayerControl())
+    mapOBJ.save("apps/users/templates/users/Map1.html")
+    return render(request, "users/Map1.html")
 
 
 def translate(request):
